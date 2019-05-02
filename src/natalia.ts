@@ -51,10 +51,11 @@ export class Natalia implements GameObject {
 	}
 
 	setTargetPlace(targetX: number, targetY: number): void {
-		this.targetPlaceSprite.x = targetX;
-		this.targetPlaceSprite.y = targetY;
+		this.targetPlaceSprite.x = targetX - this.targetPlaceSprite.width / 2;
+		this.targetPlaceSprite.y = targetY - this.targetPlaceSprite.height / 2;
 		this.targetPlaceSprite.show();
 		this.targetPlaceSprite.modified();
+		this.movingFrameSprite.start();
 	}
 
 	isMoving(): boolean {
@@ -78,17 +79,17 @@ export class Natalia implements GameObject {
 			this.currentSprite.y,
 			this.currentSprite.width,
 			this.currentSprite.height,
-			this.targetPlaceSprite.x,
-			this.targetPlaceSprite.y,
-			this.targetPlaceSprite.width,
-			this.targetPlaceSprite.height)) {
+			this.targetPlaceSprite.x + 0.4 * this.targetPlaceSprite.width,
+			this.targetPlaceSprite.y + 0.4 * this.targetPlaceSprite.height,
+			0.2 * this.targetPlaceSprite.width,
+			0.2 * this.targetPlaceSprite.height)) {
 			this.targetPlaceSprite.hide();
+			this.movingFrameSprite.stop();
 		}
 	}
 
 	private setCurrentSprite(): void {
 		if (this.status === "escape") {
-			this.movingFrameSprite.stop();
 			this.movingFrameSprite.hide();
 			this.escapeSprite.x = this.movingFrameSprite.x;
 			this.escapeSprite.y = this.movingFrameSprite.y;
@@ -100,9 +101,10 @@ export class Natalia implements GameObject {
 			this.movingFrameSprite.x = this.escapeSprite.x;
 			this.movingFrameSprite.y = this.escapeSprite.y;
 			this.movingFrameSprite.show();
-			this.movingFrameSprite.start();
 			this.movingFrameSprite.modified();
 			this.currentSprite = this.movingFrameSprite;
+			this.targetPlaceSprite.hide(); // すぐ鬼に見つかってしまう可能性があるのでここで隠しておく
+			this.movingFrameSprite.stop();
 		}
 	}
 }

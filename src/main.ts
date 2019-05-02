@@ -54,8 +54,8 @@ export = (param: g.GameMainParameterObject): void => {
 			font,
 			fontSize: font.size,
 			textColor: "white",
-			x: 0.8 * g.game.width,
-			y: 0.03 * g.game.height
+			x: 0.7 * g.game.width,
+			y: 0
 		});
 		scene.append(scoreLabel);
 		natalia = new Natalia({
@@ -92,6 +92,7 @@ export = (param: g.GameMainParameterObject): void => {
 			})
 		});
 		natalia.register(scene);
+		const cardboardPlace = getRandomPlace();
 		cardboardSprite = new g.Sprite({
 			scene: scene,
 			src: scene.assets["cardboard"] as g.ImageAsset,
@@ -99,7 +100,8 @@ export = (param: g.GameMainParameterObject): void => {
 			height: DEFAULT_CHIP_SIZE,
 			srcWidth: 677,
 			srcHeight: 761,
-			hidden: true
+			x: cardboardPlace.x,
+			y: cardboardPlace.y
 		});
 		scene.append(cardboardSprite);
 		(scene.assets["normal_bgm"] as g.AudioAsset).play();
@@ -127,11 +129,6 @@ export = (param: g.GameMainParameterObject): void => {
 						if (natalia.status === "move") {
 							(scene.assets["normal_bgm"] as g.AudioAsset).stop();
 							(scene.assets["found_bgm"] as g.AudioAsset).play();
-							cardboardSprite.show();
-							const place = getRandomPlace();
-							cardboardSprite.x = place.x;
-							cardboardSprite.y = place.y;
-							cardboardSprite.modified();
 							natalia.setStatus("escape");
 						}
 					}
@@ -206,9 +203,12 @@ const hideEvent = (scene: g.Scene, natalia: Natalia, ogres: Ogre[], cardboard: g
 	(scene.assets["get_danball"] as g.AudioAsset).play();
 	(scene.assets["found_bgm"] as g.AudioAsset).stop();
 	(scene.assets["normal_bgm"] as g.AudioAsset).play();
-	cardboard.hide();
 	natalia.setStatus("move");
 	ogres.forEach(ogre => ogre.lost());
+	const place = getRandomPlace();
+	cardboard.x = place.x;
+	cardboard.y = place.y;
+	cardboard.modified();
 };
 
 const getRandomPlace = (): g.CommonOffset => {

@@ -75,9 +75,9 @@ export class SushiFactory {
 
 	static getRandomSushiType(): SushiType {
 		const num = g.game.random.get(0, 99);
-		if (num < 4) {
+		if (num < 6) {
 			return "toro";
-		} else if (num < 20) {
+		} else if (num < 30) {
 			return "salmon";
 		} else {
 			return "ebi";

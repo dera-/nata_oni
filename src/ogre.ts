@@ -11,11 +11,13 @@ const MOVING_DOWN = [0, 1, 2, 3];
 const MOVING_LEFT = [4, 5, 6, 7];
 const MOVING_RIGHT = [8, 9, 10, 11];
 const MOVING_UP = [12, 13, 14, 15];
-const NORMAL_SPEED = 3;
+const NORMAL_SPEED = 3.7;
 const HIGH_SPEED = 5;
 const DEFAULT_CHIP_SIZE = 48;
 const DISTANCE_TO_MOVE = 250;
 const COLLISION_DISTANCE = 3;
+const SEARCH_LENGTH = 250;
+const SEARCH_WIDTH = DEFAULT_CHIP_SIZE * 1.75;
 
 export class Ogre implements GameObject {
 	private sprite: g.FrameSprite;
@@ -93,8 +95,8 @@ export class Ogre implements GameObject {
 				this.searchPlace = {x: reach, y: this.sprite.y};
 				this.searchRect.x = this.sprite.x + this.sprite.width;
 				this.searchRect.y = this.sprite.y;
-				this.searchRect.width = DISTANCE_TO_MOVE;
-				this.searchRect.height = this.sprite.height;
+				this.searchRect.width = SEARCH_LENGTH;
+				this.searchRect.height = SEARCH_WIDTH;
 				this.searchRect.modified();
 				break;
 			case "left":
@@ -103,28 +105,28 @@ export class Ogre implements GameObject {
 				this.searchPlace = {x: reach, y: this.sprite.y};
 				this.searchRect.x = this.sprite.x - DISTANCE_TO_MOVE;
 				this.searchRect.y = this.sprite.y;
-				this.searchRect.width = DISTANCE_TO_MOVE;
-				this.searchRect.height = this.sprite.height;
+				this.searchRect.width = SEARCH_LENGTH;
+				this.searchRect.height = SEARCH_WIDTH;
 				this.searchRect.modified();
 				break;
 			case "up":
 				target = this.sprite.y - DISTANCE_TO_MOVE;
 				reach = target < 0 ? 0 : target;
 				this.searchPlace = {x: this.sprite.x, y: reach};
-				this.searchRect.x = this.sprite.x;
+				this.searchRect.x = this.sprite.x - (SEARCH_WIDTH - this.sprite.width) / 2;
 				this.searchRect.y = this.sprite.y - DISTANCE_TO_MOVE;
-				this.searchRect.width = this.sprite.width;
-				this.searchRect.height = DISTANCE_TO_MOVE;
+				this.searchRect.width = SEARCH_WIDTH;
+				this.searchRect.height = SEARCH_LENGTH;
 				this.searchRect.modified();
 				break;
 			case "down":
 				target = this.sprite.y + DISTANCE_TO_MOVE;
 				reach = target > (g.game.height - this.sprite.height) ? (g.game.height - this.sprite.height) : target;
 				this.searchPlace = {x: this.sprite.x, y: reach};
-				this.searchRect.x = this.sprite.x;
+				this.searchRect.x = this.sprite.x - (SEARCH_WIDTH - this.sprite.width) / 2;
 				this.searchRect.y = this.sprite.y + this.sprite.height;
-				this.searchRect.width = this.sprite.width;
-				this.searchRect.height = DISTANCE_TO_MOVE;
+				this.searchRect.width = SEARCH_WIDTH;
+				this.searchRect.height = SEARCH_LENGTH;
 				this.searchRect.modified();
 				break;
 			default:
@@ -149,14 +151,15 @@ export class Ogre implements GameObject {
 		const radian = Math.atan2(targetY - currentY, targetX - currentX);
 		const dx = Math.cos(radian);
 		const dy = Math.sin(radian);
+		console.log(dx, dy);
 		let frames: number[] = this.sprite.frames;
 
 		if (dy < 0) {
 			frames = MOVING_UP;
 		} else {
-			if (dx > 0) {
+			if (dx > 0.1) {
 				frames = MOVING_RIGHT;
-			} else if (dx < 0) {
+			} else if (dx < -0.1) {
 				frames = MOVING_LEFT;
 			} else {
 				frames = MOVING_DOWN;
