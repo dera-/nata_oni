@@ -9,7 +9,7 @@ export interface NataliaParameterObject {
 	status?: NataliaStatus;
 }
 
-const NORMAL_SPEED = 30;
+const NORMAL_SPEED = 4.5;
 
 export class Natalia implements GameObject {
 	movingFrameSprite: g.FrameSprite;
@@ -70,8 +70,9 @@ export class Natalia implements GameObject {
 		const radian = Math.atan2(this.targetPlaceSprite.y - currentY, this.targetPlaceSprite.x - currentX);
 		const dx = Math.cos(radian);
 		const dy = Math.sin(radian);
-		this.currentSprite.x = dx * this.speed;
-		this.currentSprite.y = dy * this.speed;
+		this.currentSprite.x += dx * this.speed;
+		this.currentSprite.y += dy * this.speed;
+		this.currentSprite.modified();
 		if (g.Collision.intersect(
 			this.currentSprite.x,
 			this.currentSprite.y,
@@ -89,16 +90,18 @@ export class Natalia implements GameObject {
 		if (this.status === "escape") {
 			this.movingFrameSprite.stop();
 			this.movingFrameSprite.hide();
-			this.escapeSprite.x = this.currentSprite.x;
-			this.escapeSprite.y = this.currentSprite.y;
+			this.escapeSprite.x = this.movingFrameSprite.x;
+			this.escapeSprite.y = this.movingFrameSprite.y;
 			this.escapeSprite.show();
+			this.escapeSprite.modified();
 			this.currentSprite = this.escapeSprite;
 		} else {
 			this.escapeSprite.hide();
-			this.movingFrameSprite.x = this.currentSprite.x;
-			this.movingFrameSprite.y = this.currentSprite.y;
+			this.movingFrameSprite.x = this.escapeSprite.x;
+			this.movingFrameSprite.y = this.escapeSprite.y;
 			this.movingFrameSprite.show();
 			this.movingFrameSprite.start();
+			this.movingFrameSprite.modified();
 			this.currentSprite = this.movingFrameSprite;
 		}
 	}

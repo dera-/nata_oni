@@ -1,5 +1,4 @@
 import {Direction} from "./direction";
-import Collision = g.Collision;
 import {GameObject} from "./gameobject";
 
 export interface OgreParameterObject {
@@ -12,11 +11,11 @@ const MOVING_DOWN = [0, 1, 2, 3];
 const MOVING_LEFT = [4, 5, 6, 7];
 const MOVING_RIGHT = [8, 9, 10, 11];
 const MOVING_UP = [12, 13, 14, 15];
-const NORMAL_SPEED = 20;
-const HIGH_SPEED = 40;
+const NORMAL_SPEED = 3;
+const HIGH_SPEED = 5;
 const DEFAULT_CHIP_SIZE = 48;
-const DISTANCE_TO_MOVE = 150;
-const COLLISION_DISTANCE = 5;
+const DISTANCE_TO_MOVE = 250;
+const COLLISION_DISTANCE = 3;
 
 export class Ogre implements GameObject {
 	private sprite: g.FrameSprite;
@@ -53,7 +52,8 @@ export class Ogre implements GameObject {
 	}
 
 	register(scene: g.Scene): void {
-		scene.apeend(this.sprite);
+		this.sprite.start();
+		scene.append(this.sprite);
 		scene.append(this.bikkuriSprite);
 		scene.append(this.searchRect);
 	}
@@ -85,44 +85,47 @@ export class Ogre implements GameObject {
 		}
 		const directions: Direction[] = ["right", "left", "up", "down"];
 		const index = g.game.random.get(0, directions.length - 1);
+		let target, reach;
 		switch (directions[index]) {
 			case "right":
-				const limit = g.game.width - this.sprite.width;
-				const target = this.sprite.x + DISTANCE_TO_MOVE;
-				const reach = target > limit ? limit : target;
+				target = this.sprite.x + DISTANCE_TO_MOVE;
+				reach = target > (g.game.width - this.sprite.width) ? (g.game.width - this.sprite.width) : target;
 				this.searchPlace = {x: reach, y: this.sprite.y};
 				this.searchRect.x = this.sprite.x + this.sprite.width;
 				this.searchRect.y = this.sprite.y;
 				this.searchRect.width = DISTANCE_TO_MOVE;
 				this.searchRect.height = this.sprite.height;
+				this.searchRect.modified();
 				break;
 			case "left":
-				const target = this.sprite.x - DISTANCE_TO_MOVE;
-				const reach = target < 0 ? 0 : target;
+				target = this.sprite.x - DISTANCE_TO_MOVE;
+				reach = target < 0 ? 0 : target;
 				this.searchPlace = {x: reach, y: this.sprite.y};
 				this.searchRect.x = this.sprite.x - DISTANCE_TO_MOVE;
 				this.searchRect.y = this.sprite.y;
 				this.searchRect.width = DISTANCE_TO_MOVE;
 				this.searchRect.height = this.sprite.height;
+				this.searchRect.modified();
 				break;
 			case "up":
-				const target = this.sprite.y - DISTANCE_TO_MOVE;
-				const reach = target < 0 ? 0 : target;
+				target = this.sprite.y - DISTANCE_TO_MOVE;
+				reach = target < 0 ? 0 : target;
 				this.searchPlace = {x: this.sprite.x, y: reach};
 				this.searchRect.x = this.sprite.x;
 				this.searchRect.y = this.sprite.y - DISTANCE_TO_MOVE;
 				this.searchRect.width = this.sprite.width;
 				this.searchRect.height = DISTANCE_TO_MOVE;
+				this.searchRect.modified();
 				break;
 			case "down":
-				const limit = g.game.height - this.sprite.height;
-				const target = this.sprite.y + DISTANCE_TO_MOVE;
-				const reach = target > limit ? limit : target;
+				target = this.sprite.y + DISTANCE_TO_MOVE;
+				reach = target > (g.game.height - this.sprite.height) ? (g.game.height - this.sprite.height) : target;
 				this.searchPlace = {x: this.sprite.x, y: reach};
 				this.searchRect.x = this.sprite.x;
 				this.searchRect.y = this.sprite.y + this.sprite.height;
 				this.searchRect.width = this.sprite.width;
 				this.searchRect.height = DISTANCE_TO_MOVE;
+				this.searchRect.modified();
 				break;
 			default:
 				this.searchPlace = {x: this.sprite.x, y: this.sprite.y};
@@ -132,6 +135,7 @@ export class Ogre implements GameObject {
 	}
 
 	moveToSearch(): void {
+		this.search();
 		this.move(this.searchPlace.x, this.searchPlace.y);
 	}
 
@@ -161,12 +165,15 @@ export class Ogre implements GameObject {
 		if (this.sprite.frames !== frames) {
 			this.sprite.frames = frames;
 		}
-		this.sprite.x = dx * this.speed;
-		this.sprite.y = dy * this.speed;
-		this.searchRect.x = dx * this.speed;
-		this.searchRect.y = dy * this.speed;
-		this.bikkuriSprite.x = dx * this.speed;
-		this.bikkuriSprite.y = dy * this.speed;
+		this.sprite.x += dx * this.speed;
+		this.sprite.y += dy * this.speed;
+		this.searchRect.x += dx * this.speed;
+		this.searchRect.y += dy * this.speed;
+		this.bikkuriSprite.x += dx * this.speed;
+		this.bikkuriSprite.y += dy * this.speed;
+		this.sprite.modified();
+		this.searchRect.modified();
+		this.bikkuriSprite.modified();
 	}
 }
 
@@ -174,7 +181,7 @@ export class OgreFactory {
 	static create(scene: g.Scene, x: number, y: number): Ogre {
 		const sprite = new g.FrameSprite({
 			scene,
-			src: scene.assets["ogre"] as g.ImageAsset,
+			src: scene.assets["ogre_dot"] as g.ImageAsset,
 			width: DEFAULT_CHIP_SIZE,
 			height: DEFAULT_CHIP_SIZE * 1.75,
 			srcWidth: 64,

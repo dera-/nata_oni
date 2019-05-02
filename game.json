@@ -1,12 +1,142 @@
 {
 	"width": 800,
-	"height": 600,
+	"height": 640,
 	"fps": 30,
 	"main": "./script/main.js",
 	"assets": {
 		"main": {
 			"type": "script",
 			"path": "script/main.js",
+			"global": true
+		},
+		"bikkuri": {
+			"type": "image",
+			"width": 120,
+			"height": 360,
+			"path": "image/bikkuri.png"
+		},
+		"cardboard": {
+			"type": "image",
+			"width": 677,
+			"height": 761,
+			"path": "image/cardboard.png"
+		},
+		"mapchips": {
+			"type": "image",
+			"width": 480,
+			"height": 256,
+			"path": "image/mapchips.png"
+		},
+		"nata_dan": {
+			"type": "image",
+			"width": 640,
+			"height": 80,
+			"path": "image/nata_dan.png"
+		},
+		"nata_escape": {
+			"type": "image",
+			"width": 300,
+			"height": 230,
+			"path": "image/nata_escape.png"
+		},
+		"pointer": {
+			"type": "image",
+			"width": 960,
+			"height": 768,
+			"path": "image/pointer.png"
+		},
+		"sushi_ebi": {
+			"type": "image",
+			"width": 100,
+			"height": 140,
+			"path": "image/sushi_ebi.png"
+		},
+		"sushi_salmon": {
+			"type": "image",
+			"width": 100,
+			"height": 140,
+			"path": "image/sushi_salmon.png"
+		},
+		"sushi_toro": {
+			"type": "image",
+			"width": 100,
+			"height": 140,
+			"path": "image/sushi_toro.png"
+		},
+		"field": {
+			"type": "text",
+			"path": "text/field.json"
+		},
+		"ogre_dot": {
+			"type": "image",
+			"width": 256,
+			"height": 448,
+			"path": "image/ogre_dot.png"
+		},
+		"direction": {
+			"type": "script",
+			"path": "script/direction.js",
+			"global": true
+		},
+		"gameobject": {
+			"type": "script",
+			"path": "script/gameobject.js",
+			"global": true
+		},
+		"natalia": {
+			"type": "script",
+			"path": "script/natalia.js",
+			"global": true
+		},
+		"ogre": {
+			"type": "script",
+			"path": "script/ogre.js",
+			"global": true
+		},
+		"sushi": {
+			"type": "script",
+			"path": "script/sushi.js",
+			"global": true
+		},
+		"enemy_found": {
+			"type": "audio",
+			"path": "audio/enemy_found",
+			"systemId": "sound",
+			"duration": 1359
+		},
+		"found_bgm": {
+			"type": "audio",
+			"path": "audio/found_bgm",
+			"systemId": "music",
+			"duration": 4123
+		},
+		"gameover_se": {
+			"type": "audio",
+			"path": "audio/gameover_se",
+			"systemId": "sound",
+			"duration": 2581
+		},
+		"get_danball": {
+			"type": "audio",
+			"path": "audio/get_danball",
+			"systemId": "sound",
+			"duration": 1808
+		},
+		"get_sushi": {
+			"type": "audio",
+			"path": "audio/get_sushi",
+			"systemId": "sound",
+			"duration": 1234
+		},
+		"normal_bgm": {
+			"type": "audio",
+			"path": "audio/normal_bgm",
+			"systemId": "music",
+			"duration": 257027
+		},
+		"fontfactory": {
+			"type": "script",
+			"path": "script/fontfactory.js",
 			"global": true
 		}
 	},

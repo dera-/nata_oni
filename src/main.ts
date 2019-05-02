@@ -2,31 +2,62 @@ import {Tile} from "@akashic-extension/akashic-tile";
 import {Natalia} from "./natalia";
 import {Ogre, OgreFactory} from "./ogre";
 import {Sushi, SushiFactory} from "./sushi";
+import {FontFactory} from "./fontfactory";
 
 const DEFAULT_CHIP_SIZE = 48;
-const SUSHI_LIMIT = 3;
+const SUSHI_LIMIT = 5;
 const OGRE_THRESHOLD = 1000;
-const MAX_OGRE_COUNT = 10;
+const MAX_OGRE_COUNT = 13;
 export = (param: g.GameMainParameterObject): void => {
 	const scene = new g.Scene({
 		game: g.game,
-		assetIds: []
+		assetIds: [
+			"bikkuri",
+			"cardboard",
+			"mapchips",
+			"nata_dan",
+			"nata_escape",
+			"ogre_dot",
+			"pointer",
+			"sushi_ebi",
+			"sushi_salmon",
+			"sushi_toro",
+			"field",
+			"normal_bgm",
+			"found_bgm",
+			"enemy_found",
+			"gameover_se",
+			"get_danball",
+			"get_sushi"
+		]
 	});
 	let score: number = 0;
 	let tile: Tile;
 	let natalia: Natalia;
 	let cardboardSprite: g.Sprite;
+	let scoreLabel: g.Label;
 	const ogres: Ogre[] = [];
 	const sushis: Sushi[] = [];
 	scene.loaded.add(() => {
 		tile = new Tile({
 			scene,
-			src: this.assets["mapchips"],
+			src: scene.assets["mapchips"],
 			tileWidth: 32,
 			tileHeight: 32,
-			tileData: JSON.parse((this.assets["field"] as g.TextAsset).data)
+			tileData: JSON.parse((scene.assets["field"] as g.TextAsset).data)
 		});
 		scene.append(tile);
+		const font = FontFactory.createDynamicFont(g.game, 32);
+		scoreLabel = new g.Label({
+			scene,
+			text: "SCORE: 0",
+			font,
+			fontSize: font.size,
+			textColor: "white",
+			x: 0.8 * g.game.width,
+			y: 0.03 * g.game.height
+		});
+		scene.append(scoreLabel);
 		natalia = new Natalia({
 			movingFrameSprite: new g.FrameSprite({
 				scene: scene,
@@ -71,8 +102,56 @@ export = (param: g.GameMainParameterObject): void => {
 			hidden: true
 		});
 		scene.append(cardboardSprite);
+		(scene.assets["normal_bgm"] as g.AudioAsset).play();
+		scene.pointUpCapture.add((ev) => {
+			natalia.setTargetPlace(ev.point.x, ev.point.y);
+		});
 		scene.update.add(() => {
-
+			natalia.move();
+			if (isHidden(natalia, cardboardSprite)) {
+				hideEvent(scene, natalia, ogres, cardboardSprite);
+			}
+			ogres.forEach(ogre => {
+				if (ogre.isFound()) {
+					ogre.moveToTarget(natalia.getCommonArea());
+					if (g.Collision.intersectAreas(natalia.getCommonArea(), ogre.getCommonArea())) {
+						// ゲームオーバー
+						(scene.assets["gameover_se"] as g.AudioAsset).play();
+						console.log("game over");
+					}
+				} else {
+					ogre.moveToSearch();
+					if (isFound(natalia, ogre)) {
+						(scene.assets["enemy_found"] as g.AudioAsset).play();
+						ogre.find();
+						if (natalia.status === "move") {
+							(scene.assets["normal_bgm"] as g.AudioAsset).stop();
+							(scene.assets["found_bgm"] as g.AudioAsset).play();
+							cardboardSprite.show();
+							const place = getRandomPlace();
+							cardboardSprite.x = place.x;
+							cardboardSprite.y = place.y;
+							cardboardSprite.modified();
+							natalia.setStatus("escape");
+						}
+					}
+				}
+			});
+			let index = 0;
+			while (index < sushis.length) {
+				if (eatenSushi(natalia, sushis[index])) {
+					(scene.assets["get_sushi"] as g.AudioAsset).play();
+					score += sushis[index].getScore();
+					scoreLabel.text = "SCORE: " + score;
+					scoreLabel.invalidate();
+					sushis[index].unregister(scene);
+					sushis.splice(index, 1);
+				} else {
+					index++;
+				}
+			}
+			addSushi(scene, sushis);
+			addOgre(scene, ogres, score);
 		});
 	});
 	g.game.pushScene(scene);
@@ -86,10 +165,6 @@ const isFound = (natalia: Natalia, ogre: Ogre): boolean => {
 	return natalia.isMoving() && g.Collision.intersectAreas(natalia.getCommonArea(), ogre.getSearchArea());
 };
 
-const isCaught = (natalia: Natalia, ogres: Ogre[]): boolean => {
-	return ogres.some(ogre => g.Collision.intersectAreas(natalia.getCommonArea(), ogre.getCommonArea()));
-};
-
 const isHidden = (natalia: Natalia, sprite: g.Sprite): boolean => {
 	const area = natalia.getCommonArea();
 	return natalia.status === "escape"
@@ -101,7 +176,9 @@ const addSushi = (scene: g.Scene, sushis: Sushi[]): void => {
 	for (let i = 0; i < SUSHI_LIMIT - current; i++) {
 		const sushiType = SushiFactory.getRandomSushiType();
 		const place = getRandomPlace();
-		sushis.push(SushiFactory.create(scene, sushiType, place.x, place.y));
+		const sushi = SushiFactory.create(scene, sushiType, place.x, place.y);
+		sushi.register(scene);
+		sushis.push(sushi);
 	}
 };
 
@@ -119,11 +196,16 @@ const addOgre = (scene: g.Scene, ogres: Ogre[], score: number): void => {
 	}
 	for (let i = 0; i < next - current; i++) {
 		const place = getRandomPlace();
-		ogres.push(OgreFactory.create(scene, place.x, place.y));
+		const ogre = OgreFactory.create(scene, place.x, place.y);
+		ogre.register(scene);
+		ogres.push(ogre);
 	}
 };
 
-const hideEvent = (natalia: Natalia, ogres: Ogre[], cardboard: g.Sprite): void => {
+const hideEvent = (scene: g.Scene, natalia: Natalia, ogres: Ogre[], cardboard: g.Sprite): void => {
+	(scene.assets["get_danball"] as g.AudioAsset).play();
+	(scene.assets["found_bgm"] as g.AudioAsset).stop();
+	(scene.assets["normal_bgm"] as g.AudioAsset).play();
 	cardboard.hide();
 	natalia.setStatus("move");
 	ogres.forEach(ogre => ogre.lost());
