@@ -9,6 +9,80 @@ const SUSHI_LIMIT = 5;
 const OGRE_THRESHOLD = 1000;
 const MAX_OGRE_COUNT = 13;
 export = (param: g.GameMainParameterObject): void => {
+	g.game.pushScene(createTitleScene());
+};
+
+const createTitleScene = (): g.Scene => {
+	const scene = new g.Scene({
+		game: g.game,
+		assetIds: ["mgs_title"]
+	});
+	scene.loaded.add(() => {
+		scene.append(createBgRect(scene));
+		const titleSprite = new g.Sprite({
+			scene: scene,
+			src: scene.assets["mgs_title"] as g.ImageAsset,
+			width: g.game.width,
+			height: 0.29 * g.game.width,
+			srcWidth: 1422,
+			srcHeight: 417,
+			y: 0.1 * g.game.height
+		});
+		scene.append(titleSprite);
+		const font = FontFactory.createDynamicFont(g.game, 24);
+		const miniLabel = new g.Label({
+			scene,
+			text: "- touch screen to play -",
+			font,
+			fontSize: font.size,
+			textColor: "black",
+			x: 0.3 * g.game.width,
+			y: 0.8 * g.game.height
+		});
+		scene.append(miniLabel);
+		scene.pointUpCapture.add(() => {
+			g.game.pushScene(createDescriptionScene());
+		});
+	});
+	return scene;
+};
+
+const createDescriptionScene = (): g.Scene => {
+	const scene = new g.Scene({
+		game: g.game,
+		assetIds: ["mgs_description"]
+	});
+	scene.loaded.add(() => {
+		scene.append(createBgRect(scene));
+		const descriptionSprite = new g.Sprite({
+			scene: scene,
+			src: scene.assets["mgs_description"] as g.ImageAsset,
+			width: g.game.width,
+			height: 0.52 * g.game.width,
+			srcWidth: 1500,
+			srcHeight: 776,
+			y: 0.1 * g.game.height
+		});
+		scene.append(descriptionSprite);
+		const font = FontFactory.createDynamicFont(g.game, 24);
+		const miniLabel = new g.Label({
+			scene,
+			text: "画面をタッチするとゲームが始まります。",
+			font,
+			fontSize: font.size,
+			textColor: "black",
+			x: 0.23 * g.game.width,
+			y: 0.85 * g.game.height
+		});
+		scene.append(miniLabel);
+		scene.pointUpCapture.add(() => {
+			g.game.pushScene(createGameScene());
+		});
+	});
+	return scene;
+};
+
+const createGameScene = (): g.Scene => {
 	const scene = new g.Scene({
 		game: g.game,
 		assetIds: [
@@ -78,6 +152,8 @@ export = (param: g.GameMainParameterObject): void => {
 				height: 0.76 * DEFAULT_CHIP_SIZE,
 				srcWidth: 300,
 				srcHeight: 230,
+				x: (g.game.width - DEFAULT_CHIP_SIZE) / 2,
+				y: (g.game.height - DEFAULT_CHIP_SIZE) / 2,
 				hidden: true
 			}),
 			targetPlaceSprite: new g.FrameSprite({
@@ -118,8 +194,10 @@ export = (param: g.GameMainParameterObject): void => {
 					ogre.moveToTarget(natalia.getCommonArea());
 					if (g.Collision.intersectAreas(natalia.getCommonArea(), ogre.getCommonArea())) {
 						// ゲームオーバー
-						(scene.assets["gameover_se"] as g.AudioAsset).play();
 						console.log("game over");
+						(scene.assets["found_bgm"] as g.AudioAsset).stop();
+						(scene.assets["gameover_se"] as g.AudioAsset).play();
+						g.game.pushScene(createGameOverScene(score));
 					}
 				} else {
 					ogre.moveToSearch();
@@ -151,7 +229,43 @@ export = (param: g.GameMainParameterObject): void => {
 			addOgre(scene, ogres, score);
 		});
 	});
-	g.game.pushScene(scene);
+	return scene;
+};
+
+const createGameOverScene = (score: number): g.Scene => {
+	const scene = new g.Scene({game: g.game});
+	scene.loaded.add(() => {
+		scene.append(createBgRect(scene));
+		const font = FontFactory.createDynamicFont(g.game, 100);
+		const gameoverLabel = new g.Label({
+			scene,
+			text: "GAME OVER",
+			font,
+			fontSize: font.size,
+			textColor: "black",
+			x: 0.22 * g.game.width,
+			y: 0.1 * g.game.height
+		});
+		scene.append(gameoverLabel);
+		const scoreLabel = new g.Label({
+			scene,
+			text: "SCORE: " + score,
+			font,
+			fontSize: font.size * 2 / 3,
+			textColor: "black",
+			x: 0.31 * g.game.width,
+			y: 0.65 * g.game.height
+		});
+		scene.append(scoreLabel);
+		const atsumaru = (window as any).RPGAtsumaru;
+		const boardId = 1;
+		if (atsumaru) {
+			atsumaru.experimental.scoreboards.setRecord(boardId, score).then(() => {
+				atsumaru.experimental.scoreboards.display(boardId);
+			});
+		}
+	});
+	return scene;
 };
 
 const eatenSushi = (natalia: Natalia, sushi: Sushi): boolean => {
@@ -215,4 +329,13 @@ const getRandomPlace = (): g.CommonOffset => {
 	const x = DEFAULT_CHIP_SIZE * g.game.random.get(0, Math.floor(g.game.width / DEFAULT_CHIP_SIZE) - 1);
 	const y = DEFAULT_CHIP_SIZE * g.game.random.get(0, Math.floor(g.game.height / DEFAULT_CHIP_SIZE) - 1);
 	return {x, y};
+};
+
+const createBgRect = (scene: g.Scene): g.FilledRect => {
+	return new g.FilledRect({
+		scene,
+		cssColor: "white",
+		width: g.game.width,
+		height: g.game.height
+	});
 };

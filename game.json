@@ -138,6 +138,18 @@
 			"type": "script",
 			"path": "script/fontfactory.js",
 			"global": true
+		},
+		"mgs_description": {
+			"type": "image",
+			"width": 1500,
+			"height": 776,
+			"path": "image/mgs_description.png"
+		},
+		"mgs_title": {
+			"type": "image",
+			"width": 1422,
+			"height": 417,
+			"path": "image/mgs_title.png"
 		}
 	},
 	"environment": {
