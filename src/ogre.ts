@@ -151,7 +151,6 @@ export class Ogre implements GameObject {
 		const radian = Math.atan2(targetY - currentY, targetX - currentX);
 		const dx = Math.cos(radian);
 		const dy = Math.sin(radian);
-		console.log(dx, dy);
 		let frames: number[] = this.sprite.frames;
 
 		if (dy < 0) {

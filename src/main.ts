@@ -194,7 +194,6 @@ const createGameScene = (): g.Scene => {
 					ogre.moveToTarget(natalia.getCommonArea());
 					if (g.Collision.intersectAreas(natalia.getCommonArea(), ogre.getCommonArea())) {
 						// ゲームオーバー
-						console.log("game over");
 						(scene.assets["found_bgm"] as g.AudioAsset).stop();
 						(scene.assets["gameover_se"] as g.AudioAsset).play();
 						g.game.pushScene(createGameOverScene(score));
